@@ -80,6 +80,112 @@ app.get("/tez-credit-click", async (req, res) => {
   }
 });
 
+
+app.get("/angel-one-click", async (req, res) => {
+  try {
+    const {
+      clickid,
+      pid,
+      sub2,
+      sub7,
+      sub3,
+      sub4,
+      sub6,
+      sub8,
+      offer_id
+    } = req.query;
+
+    if (!clickid) {
+      return res.status(400).send("Missing clickid");
+    }
+
+    const serverSeenIp =
+      req.headers["cf-connecting-ip"] ||
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    const serverSeenUa = req.get("user-agent") || "";
+
+    console.log({
+      offer: "angel_one",
+      time: new Date().toISOString(),
+      clickid,
+      pid,
+      sub2,
+      sub7,
+      gaid: sub3,
+      idfa: sub4,
+      publisherIp: sub6,
+      publisherUa: sub8,
+      serverSeenIp,
+      serverSeenUa,
+      offer_id
+    });
+
+    const afUrl = new URL("https://app.appsflyer.com/com.msf.angelmobile");
+
+    afUrl.searchParams.set("pid", "adsphiremx8_int");
+
+    afUrl.searchParams.set(
+      "af_siteid",
+      `${pid || "unknown"}_${sub2 || "na"}_${sub7 || "na"}`
+    );
+
+    afUrl.searchParams.set("c", "APP_Inno_Adsphire_adsphiremx8_int");
+
+    if (offer_id) {
+      afUrl.searchParams.set("af_ad_id", offer_id);
+    }
+
+    afUrl.searchParams.set(
+      "af_adset_id",
+      `${pid || "unknown"}_${sub2 || "na"}`
+    );
+
+    afUrl.searchParams.set(
+      "af_ad",
+      "AngelOneforEveryoneCreative-1-320x250"
+    );
+
+    afUrl.searchParams.set("af_click_lookback", "7d");
+    afUrl.searchParams.set("clickid", clickid);
+
+    if (sub3) {
+      afUrl.searchParams.set("advertising_id", sub3);
+    }
+
+    if (sub4) {
+      afUrl.searchParams.set("idfa", sub4);
+    }
+
+    afUrl.searchParams.set("af_prt", "adsphirein749");
+
+    if (pid) {
+      afUrl.searchParams.set("af_c_id", pid);
+      afUrl.searchParams.set("af_channel", pid);
+    }
+
+    // Publisher IP and UA from Affise/publisher
+    if (sub6) {
+      afUrl.searchParams.set("af_ip", sub6);
+      afUrl.searchParams.set("af_sub1", sub6);
+    }
+
+    if (sub8) {
+      afUrl.searchParams.set("af_ua", sub8);
+      afUrl.searchParams.set("af_sub2", sub8);
+    }
+
+    console.log("Redirecting Angel One to:", afUrl.toString());
+
+    return res.redirect(302, afUrl.toString());
+  } catch (error) {
+    console.error("Angel One redirect error:", error);
+    return res.status(500).send("Internal tracking error");
+  }
+});
+
+
 app.get("/health", (req, res) => {
   res.send("OK");
 });
